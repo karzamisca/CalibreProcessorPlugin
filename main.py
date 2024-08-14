@@ -139,17 +139,33 @@ class PDFTextExtractorInterface(InterfaceAction):
     def extract_text(self, input_path, output_folder, keyword, num_sentences, direction, extract_text, extract_images):
         file_extension = os.path.splitext(input_path)[1].lower()
 
-        if file_extension == '.pdf':
-            if extract_text:
-                self.extract_text_from_pdf(input_path, keyword, output_folder, num_sentences, direction)
-            if extract_images:
-                self.extract_images_from_pdf(input_path, output_folder)
-        elif file_extension == '.epub':
-            if extract_text:
-                self.extract_text_from_epub(input_path, keyword, output_folder, num_sentences, direction)
-            if extract_images:
-                self.extract_images_from_epub(input_path, output_folder)
+        if os.path.isdir(input_path):
+            for file_name in os.listdir(input_path):
+                full_path = os.path.join(input_path, file_name)
+                if file_name.lower().endswith('.pdf') or file_name.lower().endswith('.epub'):
+                    if file_extension == '.pdf':
+                        if extract_text:
+                            self.extract_text_from_pdf(full_path, keyword, output_folder, num_sentences, direction)
+                        if extract_images:
+                            self.extract_images_from_pdf(full_path, output_folder)
+                    elif file_extension == '.epub':
+                        if extract_text:
+                            self.extract_text_from_epub(full_path, keyword, output_folder, num_sentences, direction)
+                        if extract_images:
+                            self.extract_images_from_epub(full_path, output_folder)
         else:
-            QMessageBox.critical(self.gui, 'Unsupported File Type', 'The selected file is neither a PDF nor an EPUB.')
+            if file_extension == '.pdf':
+                if extract_text:
+                    self.extract_text_from_pdf(input_path, keyword, output_folder, num_sentences, direction)
+                if extract_images:
+                    self.extract_images_from_pdf(input_path, output_folder)
+            elif file_extension == '.epub':
+                if extract_text:
+                    self.extract_text_from_epub(input_path, keyword, output_folder, num_sentences, direction)
+                if extract_images:
+                    self.extract_images_from_epub(input_path, output_folder)
+            else:
+                QMessageBox.critical(self.gui, 'Unsupported File Type', 'The selected file is neither a PDF nor an EPUB.')
 
         QMessageBox.information(self.gui, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
+

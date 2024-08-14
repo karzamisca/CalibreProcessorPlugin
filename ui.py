@@ -1,4 +1,5 @@
 from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox
+import os
 
 class PDFTextExtractorDialog(QDialog):
     def __init__(self, gui, icon, do_user_config):
@@ -16,8 +17,8 @@ class PDFTextExtractorDialog(QDialog):
         self.keyword_input.setPlaceholderText('Enter keyword to search for')
         self.l.addWidget(self.keyword_input)
 
-        self.input_button = QPushButton('Select Input File', self)
-        self.input_button.clicked.connect(self.select_input_file)
+        self.input_button = QPushButton('Select Input File(s) or Folder', self)
+        self.input_button.clicked.connect(self.select_input_file_or_folder)
         self.l.addWidget(self.input_button)
 
         self.output_button = QPushButton('Select Output Directory', self)
@@ -50,15 +51,22 @@ class PDFTextExtractorDialog(QDialog):
         self.conf_button.clicked.connect(self.config)
         self.l.addWidget(self.conf_button)
 
-        self.input_path = ''
+        self.input_paths = []
         self.output_dir = ''
 
         self.resize(self.sizeHint())
 
-    def select_input_file(self):
-        self.input_path, _ = QFileDialog.getOpenFileName(self, 'Select Input File', '', 'PDF Files (*.pdf);;EPUB Files (*.epub)')
-        if self.input_path:
-            self.input_button.setText(f'Selected: {self.input_path.split("/")[-1]}')
+    def select_input_file_or_folder(self):
+        option = QFileDialog.getOpenFileName(self, 'Select Input File(s)', '', 'PDF Files (*.pdf);;EPUB Files (*.epub)')[0]
+        if option:
+            self.input_paths = [option]
+            self.input_button.setText(f'Selected: {os.path.basename(option)}')
+
+        if not option:
+            folder = QFileDialog.getExistingDirectory(self, 'Select Input Folder')
+            if folder:
+                self.input_paths = [os.path.join(folder, file) for file in os.listdir(folder) if file.endswith(('.pdf', '.epub'))]
+                self.input_button.setText(f'Selected: {len(self.input_paths)} files from folder')
 
     def select_output_dir(self):
         self.output_dir = QFileDialog.getExistingDirectory(self, 'Select Output Directory')
@@ -76,15 +84,16 @@ class PDFTextExtractorDialog(QDialog):
             QMessageBox.warning(self, 'No Keyword', 'Please enter a keyword to search for.')
             return
 
-        if not self.input_path:
-            QMessageBox.warning(self, 'No File Selected', 'Please select an input file.')
+        if not self.input_paths:
+            QMessageBox.warning(self, 'No File(s) Selected', 'Please select an input file or folder.')
         elif not self.output_dir:
             QMessageBox.warning(self, 'No Output Directory', 'Please select an output directory.')
         elif not (extract_text or extract_images):
             QMessageBox.warning(self, 'No Extraction Option Selected', 'Please select at least one extraction option (Text or Images).')
         else:
             pdf_text_extractor = self.gui.iactions['PDF Text Extractor']
-            pdf_text_extractor.extract_text(self.input_path, self.output_dir, keyword, num_sentences, direction, extract_text, extract_images)
+            for input_path in self.input_paths:
+                pdf_text_extractor.extract_text(input_path, self.output_dir, keyword, num_sentences, direction, extract_text, extract_images)
 
             QMessageBox.information(self, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
 
