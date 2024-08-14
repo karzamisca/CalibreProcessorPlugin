@@ -1,4 +1,4 @@
-from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox
+from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox
 
 class PDFTextExtractorDialog(QDialog):
     def __init__(self, gui, icon, do_user_config):
@@ -35,7 +35,14 @@ class PDFTextExtractorDialog(QDialog):
         self.l.addWidget(QLabel('Direction of Extraction'))
         self.l.addWidget(self.direction_combo)
 
-        self.extract_button = QPushButton('Extract Text', self)
+        self.extract_text_check = QCheckBox('Extract Text', self)
+        self.extract_text_check.setChecked(True)
+        self.l.addWidget(self.extract_text_check)
+
+        self.extract_images_check = QCheckBox('Extract Images', self)
+        self.l.addWidget(self.extract_images_check)
+
+        self.extract_button = QPushButton('Extract', self)
         self.extract_button.clicked.connect(self.extract_text)
         self.l.addWidget(self.extract_button)
 
@@ -62,15 +69,24 @@ class PDFTextExtractorDialog(QDialog):
         keyword = self.keyword_input.text()
         num_sentences = self.num_sentences_spinner.value()
         direction = self.direction_combo.currentText()
+        extract_text = self.extract_text_check.isChecked()
+        extract_images = self.extract_images_check.isChecked()
+
+        if extract_text and not keyword:
+            QMessageBox.warning(self, 'No Keyword', 'Please enter a keyword to search for.')
+            return
+
         if not self.input_path:
             QMessageBox.warning(self, 'No File Selected', 'Please select an input file.')
         elif not self.output_dir:
             QMessageBox.warning(self, 'No Output Directory', 'Please select an output directory.')
-        elif not keyword:
-            QMessageBox.warning(self, 'No Keyword', 'Please enter a keyword to search for.')
+        elif not (extract_text or extract_images):
+            QMessageBox.warning(self, 'No Extraction Option Selected', 'Please select at least one extraction option (Text or Images).')
         else:
             pdf_text_extractor = self.gui.iactions['PDF Text Extractor']
-            pdf_text_extractor.extract_text(self.input_path, self.output_dir, keyword, num_sentences, direction)
+            pdf_text_extractor.extract_text(self.input_path, self.output_dir, keyword, num_sentences, direction, extract_text, extract_images)
+
+            QMessageBox.information(self, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
 
     def config(self):
         self.do_user_config(parent=self)

@@ -2,6 +2,7 @@ import re
 import os
 import zipfile
 from bs4 import BeautifulSoup
+from PyQt5.QtGui import QImage
 from calibre.gui2.actions import InterfaceAction
 from calibre_plugins.pdf_text_extractor.ui import PDFTextExtractorDialog
 from PyQt5.QtWidgets import QMessageBox
@@ -104,11 +105,48 @@ class PDFTextExtractorInterface(InterfaceAction):
                 cleaned_text = self.clean_text("\n\n".join(extracted_text))
                 text_file.write(cleaned_text)
 
-    def extract_text(self, input_path, output_folder, keyword, num_sentences, direction):
+    def extract_images_from_pdf(self, pdf_path, output_folder):
+     with self.interface_action_base_plugin:
+        from pypdf import PdfWriter, PdfReader, PageRange
+        output_folder = self.create_output_folder(pdf_path, output_folder)
+        pdf_document = PdfReader(pdf_path)
+
+        image_folder = os.path.join(output_folder, "images")
+        if not os.path.exists(image_folder):
+            os.makedirs(image_folder)
+
+        for page_number, page in enumerate(pdf_document.pages):
+            for image_index, image in enumerate(page.images):
+                image_name = f"image_page{page_number + 1}_{image_index + 1}.png"
+                image_path = os.path.join(image_folder, image_name)
+                image_data = QImage.fromData(image.data)
+                if not image_data.save(image_path):
+                    print(f"Failed to save image: {image_name}")
+
+    def extract_images_from_epub(self, epub_path, output_folder):
+        output_folder = self.create_output_folder(epub_path, output_folder)
+        
+        with zipfile.ZipFile(epub_path, 'r') as zip_ref:
+            for file_info in zip_ref.infolist():
+                if file_info.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
+                    image_path = os.path.join(output_folder, os.path.basename(file_info.filename))
+                    with zip_ref.open(file_info) as img_file, open(image_path, 'wb') as out_file:
+                        out_file.write(img_file.read())
+
+    def extract_text(self, input_path, output_folder, keyword, num_sentences, direction, extract_text, extract_images):
         file_extension = os.path.splitext(input_path)[1].lower()
+
         if file_extension == '.pdf':
-            self.extract_text_from_pdf(input_path, keyword, output_folder, num_sentences, direction)
+            if extract_text:
+                self.extract_text_from_pdf(input_path, keyword, output_folder, num_sentences, direction)
+            if extract_images:
+                self.extract_images_from_pdf(input_path, output_folder)
         elif file_extension == '.epub':
-            self.extract_text_from_epub(input_path, keyword, output_folder, num_sentences, direction)
+            if extract_text:
+                self.extract_text_from_epub(input_path, keyword, output_folder, num_sentences, direction)
+            if extract_images:
+                self.extract_images_from_epub(input_path, output_folder)
         else:
             QMessageBox.critical(self.gui, 'Unsupported File Type', 'The selected file is neither a PDF nor an EPUB.')
+
+        QMessageBox.information(self.gui, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
