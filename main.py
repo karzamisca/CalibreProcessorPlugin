@@ -125,11 +125,14 @@ class PDFTextExtractorInterface(InterfaceAction):
 
     def extract_images_from_epub(self, epub_path, output_folder):
         output_folder = self.create_output_folder(epub_path, output_folder)
+        image_folder = os.path.join(output_folder, "images")
+        if not os.path.exists(image_folder):
+            os.makedirs(image_folder)
         
         with zipfile.ZipFile(epub_path, 'r') as zip_ref:
             for file_info in zip_ref.infolist():
                 if file_info.filename.endswith(('.jpg', '.jpeg', '.png', '.gif')):
-                    image_path = os.path.join(output_folder, os.path.basename(file_info.filename))
+                    image_path = os.path.join(image_folder, os.path.basename(file_info.filename))
                     with zip_ref.open(file_info) as img_file, open(image_path, 'wb') as out_file:
                         out_file.write(img_file.read())
 
