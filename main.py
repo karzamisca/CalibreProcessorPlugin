@@ -169,3 +169,69 @@ class PDFTextExtractorInterface(InterfaceAction):
 
         QMessageBox.information(self.gui, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
 
+    def search_text_in_pdf(self, pdf_path, keyword, num_sentences, direction):
+     with self.interface_action_base_plugin:
+        from pypdf import PdfReader
+        pdf_document = PdfReader(pdf_path)
+        extracted_text = []
+        sentences = []
+        sentence_page_map = {}
+
+        for page_number, page in enumerate(pdf_document.pages):
+            text = page.extract_text()
+            if text:
+                page_sentences = self.split_sentences(text)
+                sentences.extend(page_sentences)
+                sentence_page_map.update({i: page_number + 1 for i, _ in enumerate(page_sentences, start=len(sentences) - len(page_sentences))})
+
+        keyword_indices = [i for i, s in enumerate(sentences) if keyword.lower() in s.lower()]
+
+        for index in keyword_indices:
+            if direction == "Forward":
+                selected_sentences = sentences[index:index + num_sentences]
+            elif direction == "Backward":
+                selected_sentences = sentences[max(0, index - num_sentences + 1):index + 1]
+
+            page_number = sentence_page_map.get(index, 1)
+            extracted_text.append(f"KEYWORD FOUND ON PAGE {page_number}, SENTENCE {index + 1}:\n{' '.join(selected_sentences)}")
+
+        return "\n\n".join(extracted_text)
+
+    def search_text_in_epub(self, epub_path, keyword, num_sentences, direction):
+        extracted_text = []
+        sentences = []
+        sentence_page_map = {}
+
+        with zipfile.ZipFile(epub_path, 'r') as zip_ref:
+            for file_info in zip_ref.infolist():
+                if file_info.filename.endswith('.xhtml') or file_info.filename.endswith('.html'):
+                    with zip_ref.open(file_info) as f:
+                        soup = BeautifulSoup(f, 'lxml')
+                        text = soup.get_text()
+                        page_sentences = self.split_sentences(text)
+                        sentences.extend(page_sentences)
+                        sentence_page_map.update({i: file_info.filename for i, _ in enumerate(page_sentences, start=len(sentences) - len(page_sentences))})
+
+        keyword_indices = [i for i, s in enumerate(sentences) if keyword.lower() in s.lower()]
+
+        for index in keyword_indices:
+            if direction == "Forward":
+                selected_sentences = sentences[index:index + num_sentences]
+            elif direction == "Backward":
+                selected_sentences = sentences[max(0, index - num_sentences + 1):index + 1]
+
+            page_number = sentence_page_map.get(index, "unknown page")
+            extracted_text.append(f"KEYWORD FOUND IN {page_number}, SENTENCE {index + 1}:\n{' '.join(selected_sentences)}")
+
+        return "\n\n".join(extracted_text)
+
+    def search_text(self, input_path, keyword, num_sentences, direction):
+        file_extension = os.path.splitext(input_path)[1].lower()
+
+        if file_extension == '.pdf':
+            return self.search_text_in_pdf(input_path, keyword, num_sentences, direction)
+        elif file_extension == '.epub':
+            return self.search_text_in_epub(input_path, keyword, num_sentences, direction)
+        else:
+            return 'Unsupported file type. Please select a PDF or EPUB file.'
+

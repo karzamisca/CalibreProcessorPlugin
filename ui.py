@@ -1,5 +1,5 @@
-from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox
 import os
+from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox, QTextEdit
 
 class PDFTextExtractorDialog(QDialog):
     def __init__(self, gui, icon, do_user_config):
@@ -46,6 +46,14 @@ class PDFTextExtractorDialog(QDialog):
         self.extract_button = QPushButton('Extract', self)
         self.extract_button.clicked.connect(self.extract_text)
         self.l.addWidget(self.extract_button)
+
+        self.search_button = QPushButton('Search and Display', self)
+        self.search_button.clicked.connect(self.search_and_display_text)
+        self.l.addWidget(self.search_button)
+
+        self.result_display = QTextEdit(self)
+        self.result_display.setReadOnly(True)
+        self.l.addWidget(self.result_display)
 
         self.conf_button = QPushButton('Configure this plugin', self)
         self.conf_button.clicked.connect(self.config)
@@ -96,6 +104,24 @@ class PDFTextExtractorDialog(QDialog):
                 pdf_text_extractor.extract_text(input_path, self.output_dir, keyword, num_sentences, direction, extract_text, extract_images)
 
             QMessageBox.information(self, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
+
+    def search_and_display_text(self):
+        keyword = self.keyword_input.text()
+        num_sentences = self.num_sentences_spinner.value()
+        direction = self.direction_combo.currentText()
+
+        if not self.input_paths:
+            QMessageBox.warning(self, 'No File(s) Selected', 'Please select an input file or folder.')
+        elif not keyword:
+            QMessageBox.warning(self, 'No Keyword', 'Please enter a keyword to search for.')
+        else:
+            pdf_text_extractor = self.gui.iactions['PDF Text Extractor']
+            results = []
+            for input_path in self.input_paths:
+                result = pdf_text_extractor.search_text(input_path, keyword, num_sentences, direction)
+                results.append(f"Results for {os.path.basename(input_path)}:\n{result}\n")
+
+            self.result_display.setPlainText("\n\n".join(results))
 
     def config(self):
         self.do_user_config(parent=self)
