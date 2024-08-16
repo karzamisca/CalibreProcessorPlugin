@@ -8,12 +8,12 @@ from calibre_plugins.pdf_text_extractor.ui import PDFTextExtractorDialog
 from PyQt5.QtWidgets import QMessageBox
 
 class PDFTextExtractorInterface(InterfaceAction):
-    name = 'PDF Text Extractor'
+    name = 'PDF and EPUB Processor'
 
-    action_spec = ('PDF Text Extractor', None, 'Extract text from PDF and EPUB files', 'Ctrl+Shift+E')
+    action_spec = ('PDF and EPUB Processor', None, 'Process PDF and EPUB files', 'Ctrl+Shift+E')
 
     def genesis(self):
-        icon = get_icons('images/icon.png', 'PDF Text Extractor')
+        icon = get_icons('images/icon.png', 'PDF and EPUB Processor')
         self.qaction.setIcon(icon)
         self.qaction.triggered.connect(self.show_dialog)
 
@@ -167,8 +167,6 @@ class PDFTextExtractorInterface(InterfaceAction):
             else:
                 QMessageBox.critical(self.gui, 'Unsupported File Type', 'The selected file is neither a PDF nor an EPUB.')
 
-        QMessageBox.information(self.gui, 'Extraction Complete', 'The text and/or images have been successfully extracted.')
-
     def search_text_in_pdf(self, pdf_path, keyword, num_sentences, direction):
      with self.interface_action_base_plugin:
         from pypdf import PdfReader
@@ -194,8 +192,8 @@ class PDFTextExtractorInterface(InterfaceAction):
 
             page_number = sentence_page_map.get(index, 1)
             extracted_text.append(f"KEYWORD FOUND ON PAGE {page_number}, SENTENCE {index + 1}:\n{' '.join(selected_sentences)}")
-
-        return "\n\n".join(extracted_text)
+        cleaned_text = self.clean_text("\n\n".join(extracted_text))
+        return cleaned_text
 
     def search_text_in_epub(self, epub_path, keyword, num_sentences, direction):
         extracted_text = []
@@ -222,8 +220,8 @@ class PDFTextExtractorInterface(InterfaceAction):
 
             page_number = sentence_page_map.get(index, "unknown page")
             extracted_text.append(f"KEYWORD FOUND IN {page_number}, SENTENCE {index + 1}:\n{' '.join(selected_sentences)}")
-
-        return "\n\n".join(extracted_text)
+        cleaned_text = self.clean_text("\n\n".join(extracted_text))
+        return cleaned_text
 
     def search_text(self, input_path, keyword, num_sentences, direction):
         file_extension = os.path.splitext(input_path)[1].lower()

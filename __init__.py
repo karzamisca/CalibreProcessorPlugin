@@ -1,10 +1,10 @@
 from calibre.customize import InterfaceActionBase
 
 class PDFTextExtractorPlugin(InterfaceActionBase):
-    name = 'PDF Text Extractor'
-    description = 'Extract text from PDF files based on a keyword.'
+    name = 'PDF and EPUB Processor'
+    description = 'Process PDF and EPUB files'
     supported_platforms = ['windows', 'osx', 'linux']
-    author = 'Your Name'
+    author = 'Hoàng Minh Quân'
     version = (1, 0, 0)
     minimum_calibre_version = (0, 7, 53)
     actual_plugin = 'calibre_plugins.pdf_text_extractor.main:PDFTextExtractorInterface'
