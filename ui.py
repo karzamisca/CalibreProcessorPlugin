@@ -1,7 +1,7 @@
 import os
 from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox, QTextEdit
 
-class PDFTextExtractorDialog(QDialog):
+class TextBasedPDFandEpubProcessorDialog(QDialog):
     def __init__(self, gui, icon, do_user_config):
         QDialog.__init__(self, gui)
         self.gui = gui
@@ -10,7 +10,7 @@ class PDFTextExtractorDialog(QDialog):
         self.l = QVBoxLayout()
         self.setLayout(self.l)
 
-        self.label = QLabel('PDF and EPUB Processor')
+        self.label = QLabel('Text-based PDF and EPUB Processor Calibre Plugin')
         self.l.addWidget(self.label)
 
         self.keyword_input = QLineEdit(self)
@@ -112,7 +112,7 @@ class PDFTextExtractorDialog(QDialog):
         elif not (extract_text or extract_images):
             QMessageBox.warning(self, 'No Extraction Option Selected', 'Please select at least one extraction option (Text or Images).')
         else:
-            pdf_text_extractor = self.gui.iactions['PDF and EPUB Processor']
+            pdf_text_extractor = self.gui.iactions['Text-based PDF and EPUB Processor Calibre Plugin']
             for input_path in self.input_paths:
                 pdf_text_extractor.extract_text(input_path, self.output_dir, keyword, num_sentences, direction, extract_text, extract_images)
 
@@ -128,7 +128,7 @@ class PDFTextExtractorDialog(QDialog):
         elif not keyword:
             QMessageBox.warning(self, 'No Keyword', 'Please enter a keyword to search for.')
         else:
-            pdf_text_extractor = self.gui.iactions['PDF and EPUB Processor']
+            pdf_text_extractor = self.gui.iactions['Text-based PDF and EPUB Processor Calibre Plugin']
             results = []
             for input_path in self.input_paths:
                 result = pdf_text_extractor.search_text(input_path, keyword, num_sentences, direction)

@@ -4,23 +4,23 @@ import zipfile
 from bs4 import BeautifulSoup
 from PyQt5.QtGui import QImage
 from calibre.gui2.actions import InterfaceAction
-from calibre_plugins.pdf_text_extractor.ui import PDFTextExtractorDialog
+from calibre_plugins.text_based_pdf_and_epub_processor.ui import TextBasedPDFandEpubProcessorDialog
 from PyQt5.QtWidgets import QMessageBox
 
-class PDFTextExtractorInterface(InterfaceAction):
-    name = 'PDF and EPUB Processor'
+class InterfacePlugin(InterfaceAction):
+    name = 'Text-based PDF and EPUB Processor Calibre Plugin'
 
-    action_spec = ('PDF and EPUB Processor', None, 'Process PDF and EPUB files', 'Ctrl+Shift+E')
+    action_spec = ('Text-based PDF and EPUB Processor Calibre Plugin', None, 'Process PDF and EPUB files', 'Ctrl+Shift+E')
 
     def genesis(self):
-        icon = get_icons('images/icon.png', 'PDF and EPUB Processor')
+        icon = get_icons('images/icon.png', 'Text-based PDF and EPUB Processor Calibre Plugin')
         self.qaction.setIcon(icon)
         self.qaction.triggered.connect(self.show_dialog)
 
     def show_dialog(self):
         base_plugin_object = self.interface_action_base_plugin
         do_user_config = base_plugin_object.do_user_config
-        d = PDFTextExtractorDialog(self.gui, self.qaction.icon(), do_user_config)
+        d = TextBasedPDFandEpubProcessorDialog(self.gui, self.qaction.icon(), do_user_config)
         d.show()
 
     def split_sentences(self, text):
