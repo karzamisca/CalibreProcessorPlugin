@@ -1,11 +1,12 @@
-import re
-import os
-import zipfile
-from bs4 import BeautifulSoup
-from PyQt5.QtGui import QImage
-from calibre.gui2.actions import InterfaceAction
+import re #Built-in for Python 3.12.6
+import os #Built-in for Python 3.12.6
+import zipfile #Built-in for Python 3.12.6
+from bs4 import BeautifulSoup #v4.12.3 
+from PyQt5.QtGui import QImage #v5.15.11 
+from PyQt5.QtWidgets import QMessageBox #v5.15.11 
+from calibre.gui2.actions import InterfaceAction #Built-in for Calibre 7.17
 from calibre_plugins.text_based_pdf_and_epub_processor.ui import TextBasedPDFandEpubProcessorDialog
-from PyQt5.QtWidgets import QMessageBox
+
 
 class InterfacePlugin(InterfaceAction):
     name = 'Text-based PDF and EPUB Processor Calibre Plugin'

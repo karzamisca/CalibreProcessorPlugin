@@ -1,5 +1,5 @@
-import os
-from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox, QTextEdit
+import os #Built-in for Python 3.12.6
+from qt.core import QDialog, QLabel, QPushButton, QVBoxLayout, QLineEdit, QFileDialog, QComboBox, QSpinBox, QMessageBox, QCheckBox, QTextEdit #Built-in for Calibre 7.17
 
 class TextBasedPDFandEpubProcessorDialog(QDialog):
     def __init__(self, gui, icon, do_user_config):
